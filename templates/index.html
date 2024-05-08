@@ -1,23 +1,41 @@
 [[extend 'layout.html']]
 
-<style>
-[v-cloak] {
-     display: none;
-}
-</style>
-
-
-<div class="section" id="app" v-cloak>
+<div class="section">
   <!-- Put here your Vue.js template -->
-  <h1 class="title"><i class="fa-solid fa-cube"></i> Title</h1>
-  <p>Content: my_value: {{my_value}} </p>
+  <h1 class="title">Title</h1>
+
+  <a href="[[=URL('add')]]" class="button is-primary">Add</a>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Species</th>
+        <th>Number</th>
+        <th>of which heard only</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      [[for row in rows:]]
+      <tr>
+        <!-- <td>[[ =XML(row["species"]) ]]</td> -->
+        <td>[[ =row["species"] ]]</td>
+        <td>[[= row["number"] ]]</td>
+        <td>[[= row["heard"] ]]</td>
+        <td>
+          [[if globals().get('user') and row['created_by'] == globals().get('user').get('email'):]]
+          <a class="button" href="[[=URL('delete', row['id'])]]" >Delete</a>
+          [[pass]]
+        </td>
+      </tr>
+      [[pass]]
+    </tbody>
+  </table>
+
 </div>
 
+<!--
 
-[[block page_scripts]]
-<!-- Loads the index-specific js for Vue -->
-<script>
-  let my_callback_url = "[[=XML(my_callback_url)]]";
-</script>
-<script src="js/index.js"></script>
-[[end]]
+URL('a', 'b')  generates "appname/a/b"
+URL('a', 'b', vars={'c': 'd'})  generates "appname/a/b?c=d"
+
+-->

@@ -13,11 +13,15 @@ def get_user_email():
 def get_time():
     return datetime.datetime.utcnow()
 
+db.define_table('bird',
+    Field('species'),
+    Field('number', 'integer', requires = IS_INT_IN_RANGE(0, 1000)),
+    Field('heard', 'integer', requires = IS_INT_IN_RANGE(0, 1000)),
+    Field('created_on', 'datetime', default=get_time),
+    Field('created_by', default=get_user_email),
+)
 
-### Define your table below
-#
-# db.define_table('thing', Field('name'))
-#
-## always commit your models to avoid problems later
+db.bird.created_on.readable = db.bird.created_on.writable = False
+db.bird.created_by.readable = db.bird.created_by.writable = False
 
 db.commit()

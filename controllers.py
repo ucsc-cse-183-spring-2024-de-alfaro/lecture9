@@ -30,19 +30,52 @@ from yatl.helpers import A
 from .common import db, session, T, cache, auth, logger, authenticated, unauthenticated, flash
 from py4web.utils.url_signer import URLSigner
 from .models import get_user_email
+from py4web.utils.form import Form, FormStyleBulma
 
-url_signer = URLSigner(session)
+import random
 
 @action('index')
-@action.uses('index.html', db, auth, url_signer)
+@action.uses('index.html', db, auth)
 def index():
+    rows = db(db.bird).select()
     return dict(
-        # COMPLETE: return here any signed URLs you need.
-        my_callback_url = URL('my_callback', signer=url_signer),
+        rows=rows,
     )
 
-@action('my_callback')
-@action.uses() # Add here things like db, auth, etc.
-def my_callback():
-    # The return value should be a dictionary that will be sent as JSON.
-    return dict(my_value=3)
+def validate_counts(form):
+    if form.vars["heard"] > form.vars["number"]:
+        form.errors["heard"] = T("You can't have heard more birds than you have detected in total.")
+
+
+@action('add', method=['GET', 'POST'])
+@action.uses('add.html', db, auth.user)
+def add():
+    form = Form(db.bird, validation=validate_counts, formstyle=FormStyleBulma)
+    if form.accepted:
+        # The form succeeded, and was processed correctly. The data has been inserted. 
+        redirect(URL('index'))
+    return dict(
+        form=form
+    )
+ 
+@action('add-alt', method=['GET', 'POST'])
+@action.uses('add.html', db, auth.user)
+def add():
+    form = Form(db.bird, validation=validate_counts, dbio=False, formstyle=FormStyleBulma)
+    if form.accepted:
+        # The form succeeded, and was processed correctly. The data has not been inserted. 
+        print(f"I should be inserting {form.vars}")
+        redirect(URL('index'))
+    return dict(
+        form=form
+    )
+
+    
+@action('delete/<bird_id:int>')
+@action.uses(db, auth.user)
+def delete(bird_id=None):
+    assert bird_id is not None
+    db((db.bird.id == bird_id) & (db.bird.created_by == get_user_email())).delete()
+    redirect(URL('index'))
+    
+    
